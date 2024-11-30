@@ -41,6 +41,7 @@ func main() {
 	// Register commands
 	c.register("login", handlerLogin)
 	c.register("register", handlerRegister)
+	c.register("reset", handlerReset)
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
