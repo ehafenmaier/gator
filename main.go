@@ -1,25 +1,36 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/ehafenmaier/boot-dev-gator/internal/config"
+	"github.com/ehafenmaier/boot-dev-gator/internal/database"
+	_ "github.com/lib/pq"
 	"log"
 	"os"
 )
 
 type state struct {
-	config *config.Config
+	db  *database.Queries
+	cfg *config.Config
 }
 
 func main() {
 	// Read the configuration
 	cfg, err := config.Read()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error reading configuration: %v", err)
 	}
 
-	// Create a new state
+	// Open a connection to the database
+	db, err := sql.Open("postgres", cfg.DBUrl)
+	if err != nil {
+		log.Fatalf("error opening database connection: %v", err)
+	}
+
+	// Create a new application state
 	s := &state{
-		config: cfg,
+		db:  database.New(db),
+		cfg: cfg,
 	}
 
 	// Create commands map
@@ -27,8 +38,9 @@ func main() {
 		cmds: make(map[string]func(*state, command) error),
 	}
 
-	// Register the login command
+	// Register commands
 	c.register("login", handlerLogin)
+	c.register("register", handlerRegister)
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
