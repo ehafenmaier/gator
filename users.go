@@ -74,7 +74,7 @@ func handlerLogin(s *state, cmd command) error {
 	return nil
 }
 
-// reset users handler function
+// Reset users handler function
 func handlerReset(s *state, _ command) error {
 	// Reset the users table in the database
 	err := s.db.ResetUsers(context.Background())
@@ -83,6 +83,25 @@ func handlerReset(s *state, _ command) error {
 	}
 
 	fmt.Println("Database users reset")
+
+	return nil
+}
+
+// List users handler function
+func handlerUsers(s *state, _ command) error {
+	// Get all users from the database
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		return fmt.Errorf("error getting users from the database: %v", err)
+	}
+
+	for _, user := range users {
+		if user.Name == s.cfg.CurrentUserName {
+			fmt.Printf("* %s (current)\n", user.Name)
+		} else {
+			fmt.Printf("* %s\n", user.Name)
+		}
+	}
 
 	return nil
 }
