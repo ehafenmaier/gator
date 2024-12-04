@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/ehafenmaier/boot-dev-gator/internal/config"
 	"github.com/ehafenmaier/boot-dev-gator/internal/database"
 	_ "github.com/lib/pq"
@@ -44,13 +45,15 @@ func main() {
 	c.register("reset", handlerReset)
 	c.register("users", handlerUsers)
 	c.register("agg", handlerAgg)
+	c.register("addfeed", handlerAddFeed)
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
-		log.Fatal("usage: boot-dev-gator <command> [args...]")
+		fmt.Println("usage: boot-dev-gator <command> [args...]")
+		os.Exit(1)
 	}
 
-	// Split the command line arguments into a command and its arguments
+	// Split the command into a command name and its arguments
 	cmd := command{
 		name: os.Args[1],
 		args: os.Args[2:],
@@ -59,6 +62,7 @@ func main() {
 	// Run the command
 	err = c.run(s, cmd)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
