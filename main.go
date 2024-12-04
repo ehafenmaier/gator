@@ -46,6 +46,7 @@ func main() {
 	c.register("users", handlerUsers)
 	c.register("agg", handlerAgg)
 	c.register("addfeed", handlerAddFeed)
+	c.register("feeds", handlerAllFeeds)
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
