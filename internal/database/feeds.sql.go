@@ -48,6 +48,58 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 	return i, err
 }
 
+const createFeedFollow = `-- name: CreateFeedFollow :one
+WITH new_feed_follow AS (
+  INSERT INTO feed_follows (id, created_at, updated_at, feed_id, user_id)
+  VALUES ($1, $2, $3, $4, $5)
+  RETURNING id, created_at, updated_at, feed_id, user_id
+)
+SELECT nff.id, nff.created_at, nff.updated_at, nff.feed_id, nff.user_id,
+       f.name AS feed_name, u.name AS user_name
+FROM new_feed_follow nff
+JOIN feeds f ON nff.feed_id = f.id
+JOIN users u ON nff.user_id = u.id
+`
+
+type CreateFeedFollowParams struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	FeedID    uuid.UUID
+	UserID    uuid.UUID
+}
+
+type CreateFeedFollowRow struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	FeedID    uuid.UUID
+	UserID    uuid.UUID
+	FeedName  string
+	UserName  string
+}
+
+func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) (CreateFeedFollowRow, error) {
+	row := q.db.QueryRowContext(ctx, createFeedFollow,
+		arg.ID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.FeedID,
+		arg.UserID,
+	)
+	var i CreateFeedFollowRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.FeedID,
+		&i.UserID,
+		&i.FeedName,
+		&i.UserName,
+	)
+	return i, err
+}
+
 const getAllFeeds = `-- name: GetAllFeeds :many
 SELECT f.id, f.created_at, f.updated_at, f.name, f.url, f.user_id,
        u.name AS user_name
@@ -94,4 +146,24 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]GetAllFeedsRow, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getFeedByUrl = `-- name: GetFeedByUrl :one
+SELECT id, created_at, updated_at, name, url, user_id
+FROM feeds
+WHERE url = $1
+`
+
+func (q *Queries) GetFeedByUrl(ctx context.Context, url string) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, getFeedByUrl, url)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+	)
+	return i, err
 }
