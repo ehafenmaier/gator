@@ -47,7 +47,7 @@ func main() {
 	c.register("agg", handlerAgg)
 	c.register("feeds", handlerAllFeeds)
 	c.register("addfeed", middlewareLoggedIn(handlerAddFeed))
-	c.register("follow", middlewareLoggedIn(handlerFollowFeed))
+	c.register("follow", middlewareLoggedIn(handlerFollow))
 	c.register("following", middlewareLoggedIn(handlerFollowing))
 
 	// Check for the proper number of arguments
