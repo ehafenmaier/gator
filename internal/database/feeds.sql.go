@@ -100,6 +100,25 @@ func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowPara
 	return i, err
 }
 
+const deleteFeedFollow = `-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows ff
+USING feeds f, users u
+WHERE ff.feed_id = f.id
+  AND ff.user_id = u.id
+  AND f.url = $1
+  AND u.name = $2
+`
+
+type DeleteFeedFollowParams struct {
+	Url  string
+	Name string
+}
+
+func (q *Queries) DeleteFeedFollow(ctx context.Context, arg DeleteFeedFollowParams) error {
+	_, err := q.db.ExecContext(ctx, deleteFeedFollow, arg.Url, arg.Name)
+	return err
+}
+
 const getAllFeeds = `-- name: GetAllFeeds :many
 SELECT f.id, f.created_at, f.updated_at, f.name, f.url, f.user_id,
        u.name AS user_name
