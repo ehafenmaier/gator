@@ -45,10 +45,10 @@ func main() {
 	c.register("reset", handlerReset)
 	c.register("users", handlerUsers)
 	c.register("agg", handlerAgg)
-	c.register("addfeed", handlerAddFeed)
 	c.register("feeds", handlerAllFeeds)
-	c.register("follow", handlerFollowFeed)
-	c.register("following", handlerFollowing)
+	c.register("addfeed", middlewareLoggedIn(handlerAddFeed))
+	c.register("follow", middlewareLoggedIn(handlerFollowFeed))
+	c.register("following", middlewareLoggedIn(handlerFollowing))
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
