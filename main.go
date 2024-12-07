@@ -49,6 +49,7 @@ func main() {
 	c.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	c.register("follow", middlewareLoggedIn(handlerFollow))
 	c.register("following", middlewareLoggedIn(handlerFollowing))
+	c.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
