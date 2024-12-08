@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
+	"github.com/ehafenmaier/boot-dev-gator/internal/database"
 	"html"
 	"io"
 	"net/http"
+	"time"
 )
 
 type RSSFeed struct {
@@ -82,4 +85,39 @@ func handlerAgg(_ *state, _ command) error {
 	fmt.Printf("%+v\n", *feed)
 
 	return nil
+}
+
+func scrapeFeeds(s *state) {
+	// Get the next feed to scrape
+	feed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		fmt.Printf("error getting next feed to fetch: %v\n", err)
+		return
+	}
+
+	// Mark the feed as fetched
+	dbParams := database.MarkFeedFetchedParams{
+		ID:            feed.ID,
+		UpdatedAt:     time.Now(),
+		LastFetchedAt: sql.NullTime{Time: time.Now(), Valid: true},
+	}
+
+	feed, err = s.db.MarkFeedFetched(context.Background(), dbParams)
+	if err != nil {
+		fmt.Printf("error marking feed fetched: %v\n", err)
+		return
+	}
+
+	// Fetch the RSS feed
+	rssFeed, err := fetchFeed(context.Background(), feed.Url)
+	if err != nil {
+		fmt.Printf("error fetching feed: %v\n", err)
+		return
+	}
+
+	// Iterate over the feed items
+	fmt.Printf("Feed: %s\n", rssFeed.Channel.Title)
+	for i, item := range rssFeed.Channel.Item {
+		fmt.Printf("%d - %s\n", i+1, item.Title)
+	}
 }
