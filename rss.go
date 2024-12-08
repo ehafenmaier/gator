@@ -75,16 +75,22 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 	return feed, nil
 }
 
-func handlerAgg(_ *state, _ command) error {
-	feedUrl := "https://www.wagslane.dev/index.xml"
-	feed, err := fetchFeed(context.Background(), feedUrl)
-	if err != nil {
-		return fmt.Errorf("error fetching feed: %v", err)
+func handlerAgg(s *state, cmd command) error {
+	if len(cmd.args) < 1 {
+		return fmt.Errorf("usage: agg <time_between_reqs>")
 	}
 
-	fmt.Printf("%+v\n", *feed)
+	// Parse the time between requests
+	timeBetweenReqs, err := time.ParseDuration(cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("error parsing time between requests: %v", err)
+	}
 
-	return nil
+	// Create a ticker to scrape feeds
+	ticker := time.NewTicker(timeBetweenReqs)
+	for ; ; <-ticker.C {
+		scrapeFeeds(s)
+	}
 }
 
 func scrapeFeeds(s *state) {
@@ -118,6 +124,7 @@ func scrapeFeeds(s *state) {
 	// Iterate over the feed items
 	fmt.Printf("Feed: %s\n", rssFeed.Channel.Title)
 	for i, item := range rssFeed.Channel.Item {
-		fmt.Printf("%d - %s\n", i+1, item.Title)
+		fmt.Printf("%03d - %s\n", i+1, item.Title)
 	}
+	fmt.Println()
 }
