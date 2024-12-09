@@ -6,9 +6,11 @@ import (
 	"encoding/xml"
 	"fmt"
 	"github.com/ehafenmaier/boot-dev-gator/internal/database"
+	"github.com/google/uuid"
 	"html"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -121,10 +123,36 @@ func scrapeFeeds(s *state) {
 		return
 	}
 
-	// Iterate over the feed items
-	fmt.Printf("Feed: %s\n", rssFeed.Channel.Title)
-	for i, item := range rssFeed.Channel.Item {
-		fmt.Printf("%03d - %s\n", i+1, item.Title)
+	// Iterate over the feed items and save them to the database
+	for _, item := range rssFeed.Channel.Item {
+		// Parse the published date
+		publishedAt, err := time.Parse(time.RFC1123Z, item.PubDate)
+		if err != nil {
+			fmt.Printf("error parsing published date: %v\n", err)
+			continue
+		}
+
+		// Create a new post
+		dbParams := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       sql.NullString{String: item.Title, Valid: true},
+			Url:         item.Link,
+			Description: sql.NullString{String: item.Description, Valid: true},
+			PublishedAt: sql.NullTime{Time: publishedAt, Valid: true},
+			FeedID:      feed.ID,
+		}
+
+		_, err = s.db.CreatePost(context.Background(), dbParams)
+		if err != nil {
+			// Skip duplicate key errors
+			if strings.Contains(err.Error(), "duplicate key value") {
+				continue
+			}
+
+			// Log other errors
+			fmt.Printf("error creating post: %v\n", err)
+		}
 	}
-	fmt.Println()
 }
