@@ -10,6 +10,7 @@ import (
 	"html"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -93,6 +94,40 @@ func handlerAgg(s *state, cmd command) error {
 	for ; ; <-ticker.C {
 		scrapeFeeds(s)
 	}
+}
+
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	// Set the limit of 2 posts
+	limit := int32(2)
+	// Check if the user has provided a limit
+	if len(cmd.args) > 0 {
+		// Parse the limit
+		userLimit, err := strconv.ParseInt(cmd.args[0], 10, 32)
+		if err != nil {
+			return fmt.Errorf("error parsing limit: %v", err)
+		}
+
+		// Set the limit
+		limit = int32(userLimit)
+	}
+
+	// Get the posts for the user
+	dbParams := database.GetPostsForUserParams{
+		Name:  user.Name,
+		Limit: limit,
+	}
+
+	posts, err := s.db.GetPostsForUser(context.Background(), dbParams)
+	if err != nil {
+		return fmt.Errorf("error getting posts for user: %v", err)
+	}
+
+	// Print the posts
+	for _, post := range posts {
+		fmt.Printf("%s\n%s\n%s\n\n", post.Title.String, post.Url, post.Description.String)
+	}
+
+	return nil
 }
 
 func scrapeFeeds(s *state) {
