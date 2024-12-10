@@ -1,4 +1,4 @@
-module github.com/ehafenmaier/boot-dev-gator
+module github.com/ehafenmaier/gator
 
 go 1.23.3
 
