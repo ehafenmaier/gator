@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/ehafenmaier/boot-dev-gator/internal/config"
-	"github.com/ehafenmaier/boot-dev-gator/internal/database"
+	"github.com/ehafenmaier/gator/internal/config"
+	"github.com/ehafenmaier/gator/internal/database"
 	_ "github.com/lib/pq"
 	"log"
 	"os"

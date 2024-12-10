@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"encoding/xml"
 	"fmt"
-	"github.com/ehafenmaier/boot-dev-gator/internal/database"
+	"github.com/ehafenmaier/gator/internal/database"
 	"github.com/google/uuid"
 	"html"
 	"io"
