@@ -54,7 +54,7 @@ func main() {
 
 	// Check for the proper number of arguments
 	if len(os.Args) < 2 {
-		fmt.Println("usage: boot-dev-gator <command> [args...]")
+		fmt.Println("usage: gator <command> [args...]")
 		os.Exit(1)
 	}
 
